@@ -1,14 +1,10 @@
 from logging import raiseExceptions
 import torch
-import torchvision
 from models import AlexNet, ResNet18
-import numpy as np
-import matplotlib.pyplot as plt
 from torchvision.datasets import CIFAR10
-from torchvision.transforms import ToTensor
-from torchvision.utils import make_grid
+
 from torch.utils.data.dataloader import DataLoader
-from torch.utils.data import random_split, Subset
+from torch.utils.data import random_split
 from torchvision import transforms
 import torch.optim as optim
 import torch.nn as nn
