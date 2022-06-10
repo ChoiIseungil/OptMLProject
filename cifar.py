@@ -60,7 +60,7 @@ def main():
     testloader = DataLoader(testset, batch_size=64,
                                             shuffle=False, num_workers=4)
 
-    print(f"Train set f{len(trainloader)}, validation set f{len(valloader)}, testloader f{len(testloader)}")
+    print(f"Train set {len(trainloader)}, validation set {len(valloader)}, testloader {len(testloader)}")
 
 
     ## Loss and optimizer
