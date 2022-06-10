@@ -13,10 +13,25 @@ from torchvision.utils import save_image
 import torch.optim as optim
 import torch.nn as nn
 
-BATCHRATIO = 2**11
-TRAINSIZE = 2**15
+import os
+import argparse
+from utils import progress_bar
+
+
+parser = argparse.ArgumentParser(description='CS439 Experiment, by Seungil Lee')
+parser.add_argument('--', '-r', action='store_true',
+                    help='resume from checkpoint')
+parser.add_argument('-trainsize', '-t', default = 2**15, type = int,
+                    help='size of trainset')
+parser.add_argument('-batchratio', '-b', default = 2**11, type = int,
+                    help='ratio of trainsize to batchsize')
+parser.add_argument('-model', '-m', required = True,
+                    help='Choose between ResNet and AlexNet')
+args = parser.parse_args()
+
+TRAINSIZE = args.trainsize
 VALSIZE = int(TRAINSIZE/3)
-BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
+BATCHSIZE = int(TRAINSIZE/args.batchratio)
 
 def main():
     #creating a dinstinct transform class for the train, validation and test dataset
@@ -43,24 +58,27 @@ def main():
     print(f"Train set f{len(trainloader)}, validation set f{len(valloader)}, testloader f{len(testloader)}")
 
 
+    ## Loss and optimizer
+    learning_rate = 1e-4
+    load_model = True
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.parameters(), lr= learning_rate) #Adam seems to be the most popular for deep learning
+
     device = torch.device('cuda')
 
     model = AlexNet() #to compile the model
     model = model.to(device=device) #to send the model for training on either cuda or cpu
 
-    ## Loss and optimizer
-    learning_rate = 1e-4 #I picked this because it seems to be the most used by experts
-    load_model = True
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr= learning_rate) #Adam seems to be the most popular for deep learning
-
+    epoch_values = []
     loss_values = []
     acc_values = []
 
-    for epoch in range(50):
+    def train(epoch):
+        print(f'\nEpoch {epoch}')
+        model.train()
         loss_ep = 0
         
-        for _, (data, targets) in enumerate(trainloader):
+        for batch_idx, (data, targets) in enumerate(trainloader):
             data = data.to(device=device)
             targets = targets.to(device=device)
             optimizer.zero_grad()
@@ -68,11 +86,23 @@ def main():
             loss = criterion(scores,targets)
             loss.backward()
             optimizer.step()
-            loss_ep += loss.item()
-        running_loss = loss_ep/len(trainloader)
-        print(f"Loss in epoch {epoch} :::: {running_loss}")
-        loss_values.append(running_loss)
 
+            train_loss += loss.item()
+            _, predicted = scores.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+
+            epoch_values.append(epoch)
+            loss_values.append(train_loss/(batch_idx+1))
+            acc_values.append(100.*correct/total)
+
+            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                        % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+
+    def test(epoch):
+        global best_acc
+        model.eval()
+        test_loss = 0
         with torch.no_grad():
             num_correct = 0
             num_samples = 0
@@ -94,7 +124,7 @@ def main():
 
     num_correct = 0
     num_samples = 0
-    for batch_idx, (data,targets) in enumerate(testloader):
+    for _, (data,targets) in enumerate(testloader):
         data = data.to(device=device)
         targets = targets.to(device=device)
         scores = model(data)
@@ -104,6 +134,10 @@ def main():
     print(
         f"Got {num_correct} / {num_samples} with accuracy {float(num_correct) / float(num_samples) * 100:.2f}"
     )
+
+    for epoch in range(200):
+        train(epoch)
+        test(epoch)
 
 if __name__ == '__main__':
     main()
