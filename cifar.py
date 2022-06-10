@@ -170,7 +170,7 @@ def main():
                 print(
                     f"Got {num_correct} / {num_samples} with accuracy {acc:.2f}"
                 )
-                test_values.append(acc)
+                test_value.append(acc)
 
     for epoch in range(args.epoch):
         train(epoch)
