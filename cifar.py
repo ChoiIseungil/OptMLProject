@@ -19,8 +19,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser(description='CS439 Experiment, by Seungil Lee')
-parser.add_argument('--', '-r', action='store_true',
-                    help='resume from checkpoint')
+
 parser.add_argument('-epoch', '-e', default = 200, type = int,
                     help='number of epochs to be trained')
 parser.add_argument('-trainsize', '-t', default = 2**15, type = int,
