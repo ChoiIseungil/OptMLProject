@@ -9,14 +9,14 @@ from torchvision import transforms
 import torch.optim as optim
 import torch.nn as nn
 import csv
-
+  
 import os
 import argparse
 
 
 parser = argparse.ArgumentParser(description='CS439 Experiment, by Seungil Lee')
 
-parser.add_argument('-epoch', '-e', default = 200, type = int,
+parser.add_argument('-epoch', '-e', required = True, default = 200, type = int,
                     help='number of epochs to be trained')
 parser.add_argument('-trainsize', '-t', default = 2**15, type = int,
                     help='size of trainset')
@@ -31,6 +31,24 @@ BATCHRATIO = args.batchratio
 TRAINSIZE = args.trainsize
 VALSIZE = int(TRAINSIZE/3)
 BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
+
+def init_model():
+    if MODEL == 'AlexNet':
+        model = AlexNet()
+    elif MODEL == 'ResNet':
+        model = ResNet18()
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        raise NotImplementedError
+    model = model.to(device=device)
+    return model
+
+def save_model(model):
+    if not os.path.isdir('saved'):
+        os.mkdir('saved')
+    torch.save(model.state_dict(), f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt")
+    print(f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt saved!")
 
 
 def main():
@@ -48,6 +66,9 @@ def main():
 
     trainset, valset, _ = random_split(trainset, [TRAINSIZE, VALSIZE, len(trainset)-TRAINSIZE-VALSIZE]) #Extracting the 10,000 validation images from the train set
 
+    print(f"Train {len(trainset)}, Validation {len(valset)}, Test {len(testset)}")
+
+
     trainloader = DataLoader(trainset, batch_size=BATCHSIZE,
                                             shuffle=True, num_workers=4) 
     valloader = DataLoader(valset, batch_size=64,
@@ -55,36 +76,24 @@ def main():
     testloader = DataLoader(testset, batch_size=64,
                                             shuffle=False, num_workers=4)
 
-    print(f"Train set {len(trainloader)}, validation set {len(valloader)}, testloader {len(testloader)}")
 
 
+    model = init_model()
     ## Loss and optimizer
     learning_rate = 1e-4
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr= learning_rate) #Adam seems to be the most popular for deep learning
+    optimizer = optim.SGD(model.parameters(), lr= learning_rate)
 
     if torch.cuda.is_available():
         device = torch.device('cuda')
     else:
         raise NotImplementedError
 
-    if MODEL == 'AlexNet':
-        model = AlexNet()
-    elif MODEL == 'ResNet':
-        model = ResNet18()
-    model = model.to(device=device)
-
     epoch_values = []
     trainloss_values = []
     valloss_values = []
     acc_values = []
     test_value = []
-
-    def save_model(model):
-        if not os.path.isdir('saved'):
-            os.mkdir('saved')
-        torch.save(model.state_dict(), f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt")
-        print(f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt saved!")
 
     def save_csv():
         if not os.path.isdir('log'):
@@ -139,10 +148,7 @@ def main():
             best_acc = acc
 
     def test():
-        if MODEL == 'AlexNet':
-            model = AlexNet()
-        elif MODEL == 'ResNet':
-            model = ResNet18()
+        model = init_model()
 
         model.load_state_dict(torch.load("saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt")) #loads the trained model
         model = model.to(device=device) #to send the model for training on either cuda or cpu
