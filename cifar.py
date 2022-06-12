@@ -106,9 +106,10 @@ def main():
 
     def train(epoch):
         best_acc = 0.
+        loss_ep = 0
         print(f'\nEpoch {epoch}')
         model.train()
-        for batch_idx, (data, targets) in enumerate(trainloader):
+        for _, (data, targets) in enumerate(trainloader):
             data = data.to(device=device)
             targets = targets.to(device=device)
             optimizer.zero_grad()
@@ -123,7 +124,7 @@ def main():
         with torch.no_grad():
             num_correct = 0
             num_samples = 0
-            for batch_idx, (data,targets) in enumerate(valloader):
+            for _, (data,targets) in enumerate(valloader):
                 data = data.to(device=device)
                 targets = targets.to(device=device)
                 scores = model(data)
@@ -157,7 +158,7 @@ def main():
         with torch.no_grad():
             num_correct = 0
             num_samples = 0
-            for batch_idx, (data,targets) in enumerate(testloader):
+            for _, (data,targets) in enumerate(testloader):
                 data = data.to(device=device)
                 targets = targets.to(device=device)
                 scores = model(data)
