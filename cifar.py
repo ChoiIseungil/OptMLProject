@@ -25,6 +25,8 @@ parser.add_argument('-batchratio', '-b', default = 2**11, type = int,
                     help='ratio of trainsize to batchsize')
 parser.add_argument('-model', '-m', required = True,
                     help='Choose between ResNet and AlexNet')
+parser.add_argument('-gpu', '-g', required = True, default = 2, type = int,
+                    help='Choose between ResNet and AlexNet')
 args = parser.parse_args()
 
 MODEL = args.model
@@ -33,15 +35,16 @@ TRAINSIZE = args.trainsize
 VALSIZE = int(TRAINSIZE/3)
 BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
 
+if torch.cuda.is_available():
+    device = torch.device(f'cuda{args.gpu}')
+else:
+    raise NotImplementedError
+
 def init_model(modelname = None):
     if MODEL == 'AlexNet':
         model = AlexNet()
     elif MODEL == 'ResNet':
         model = ResNet18()
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    else:
-        raise NotImplementedError
     if modelname is not None:
         model.load_state_dict(torch.load(modelname))
     model = model.to(device=device)
@@ -50,19 +53,18 @@ def init_model(modelname = None):
 def save_model(model):
     if not os.path.isdir('saved'):
         os.mkdir('saved')
-    torch.save(model.state_dict(), f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt")
-    print(f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt saved!")
+    torch.save(model.state_dict(), f"saved/{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.pt")
+    print(f"{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.pt saved!")
 
 def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
     if not os.path.isdir('log'):
         os.mkdir('log')
-    with open(f"./log/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.csv", 'w') as f:
+    with open(f"./log/{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.csv", 'w') as f:
         write = csv.writer(f)
-        write.writerow(["Epoch","Train Loss","Validation Loss","Accuracy","Result","Running Time"])
+        write.writerow(["Epoch","Train Loss","Validation Loss","Validation Accuracy","Test Accuracy","Running Time"])
         write.writerow([epoch, trainloss, valloss, acc, test, runningtime])
 
 def main():
-    #creating a dinstinct transform class for the train, validation and test dataset
     transform = transforms.Compose([transforms.Resize((227,227)), 
                                         transforms.ToTensor(), 
                                         transforms.Normalize(mean=[0.485, 0.456, 0.406], 
@@ -111,6 +113,7 @@ def main():
         train_loss_ep = 0
         print(f'\nEpoch {epoch}')
         model.train()
+        print("Training...")
         for _, (data, targets) in enumerate(trainloader):
             data = data.to(device=device)
             targets = targets.to(device=device)
@@ -124,6 +127,8 @@ def main():
         train_loss = train_loss_ep/len(trainloader)
         
         model.eval()
+        print("Validating...")
+
         with torch.no_grad():
             num_correct = 0
             num_samples = 0
@@ -158,7 +163,7 @@ def main():
             best_acc = acc
 
     def test():
-        model = init_model(f"saved/{MODEL}_cifar_{BATCHSIZE}:{BATCHRATIO}.pt")
+        model = init_model(f"saved/{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.pt")
         model.eval()
         
         print("Testing...")
@@ -174,7 +179,7 @@ def main():
                 _, predictions = scores.max(1)
                 num_correct += (predictions == targets).sum()
                 num_samples += predictions.size(0)
-                acc = float(num_correct) / float(num_samples) * 100
+                acc = 100.*(num_correct/num_samples)
 
             print(
                 f"Got {num_correct} / {num_samples} with accuracy {acc:.2f}"
