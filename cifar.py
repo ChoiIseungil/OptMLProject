@@ -1,7 +1,7 @@
 from logging import raiseExceptions
 import torch
 from models import AlexNet, ResNet18
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, MNIST
 
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import random_split
@@ -17,12 +17,14 @@ import time
 
 parser = argparse.ArgumentParser(description='CS439 Experiment, by Seungil Lee')
 
-parser.add_argument('-epoch', '-e', required = True, default = 100, type = int,
+parser.add_argument('-epoch', '-e', default = 100, type = int,
                     help='number of epochs to be trained')
 parser.add_argument('-trainsize', '-t', default = 2**15, type = int,
                     help='size of trainset')
 parser.add_argument('-batchratio', '-b', default = 2**11, type = int,
                     help='ratio of trainsize to batchsize')
+parser.add_argument('-data', '-d', required = True,
+                    help='Choose between cifar and mnist')
 parser.add_argument('-model', '-m', required = True,
                     help='Choose between ResNet and AlexNet')
 parser.add_argument('-gpu', '-g', required = True, default = 2, type = int,
@@ -65,19 +67,32 @@ def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
         write.writerow(["Epoch","Train Loss","Validation Loss","Validation Accuracy","Test Accuracy","Running Time"])
         write.writerow([epoch, trainloss, valloss, acc, test, runningtime])
 
-def main():
+def load_dataset():
     transform = transforms.Compose([transforms.Resize((227,227)), 
-                                        transforms.ToTensor(), 
-                                        transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                                        std=[0.229, 0.224, 0.225])])
-
-    trainset = CIFAR10(root='./data', train=True,
+                                    transforms.ToTensor(), 
+                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], 
+                                    std=[0.229, 0.224, 0.225])])
+    if args.data =="cifar":
+        
+        trainset = CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
                                             
-    testset = CIFAR10(root='./data', train=False,
+        testset = CIFAR10(root='./data', train=False,
                                         download=True, transform=transform)
+    if args.data =="mnist":
+        
+        trainset = MNIST(root='./data', train=True,
+                                            download=True, transform=transform)
+                                            
+        testset = MNIST(root='./data', train=False,
+                                        download=True, transform=transform)  
+    trainset, valset, _ = random_split(trainset, [TRAINSIZE, VALSIZE, len(trainset)-TRAINSIZE-VALSIZE])
 
-    trainset, valset, _ = random_split(trainset, [TRAINSIZE, VALSIZE, len(trainset)-TRAINSIZE-VALSIZE]) #Extracting the 10,000 validation images from the train set
+    return trainset, valset, testset            
+
+
+def main():
+    trainset, valset, testset = load_dataset()
 
     print(f"Train {len(trainset)}, Validation {len(valset)}, Test {len(testset)}")
 
