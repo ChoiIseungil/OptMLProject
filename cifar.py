@@ -32,8 +32,9 @@ args = parser.parse_args()
 MODEL = args.model
 BATCHRATIO = args.batchratio
 TRAINSIZE = args.trainsize
-VALSIZE = int(TRAINSIZE/3)
+VALSIZE = int(TRAINSIZE/4)
 BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
+EPOCH = int(2**15/TRAINSIZE)
 
 if torch.cuda.is_available():
     device = torch.device(f'cuda:{args.gpu}')
@@ -139,8 +140,8 @@ def main():
                 _, predictions = scores.max(1)
                 num_correct += (predictions == targets).sum()
                 num_samples += predictions.size(0)
-                acc = 100.*(num_correct/num_samples)
 
+            acc = 100.*(num_correct/num_samples).item()
             val_loss = val_loss_ep/len(valloader)
 
             print(
@@ -174,7 +175,7 @@ def main():
                 _, predictions = scores.max(1)
                 num_correct += (predictions == targets).sum()
                 num_samples += predictions.size(0)
-                acc = 100.*(num_correct/num_samples)
+            acc = 100.*(num_correct/num_samples).item()
 
             print(
                 f"Got {num_correct} / {num_samples} with accuracy {acc:.2f}"
@@ -184,7 +185,7 @@ def main():
 
     start_time = time.time()
 
-    for epoch in range(args.epoch):
+    for epoch in range(EPOCH):
         train(epoch)
 
     running_time = time.time() - start_time
