@@ -17,7 +17,7 @@ import time
 
 parser = argparse.ArgumentParser(description='CS439 Experiment, by Seungil Lee')
 
-parser.add_argument('-epoch', '-e', required = True, default = 200, type = int,
+parser.add_argument('-epoch', '-e', required = True, default = 100, type = int,
                     help='number of epochs to be trained')
 parser.add_argument('-trainsize', '-t', default = 2**15, type = int,
                     help='size of trainset')
@@ -34,7 +34,7 @@ BATCHRATIO = args.batchratio
 TRAINSIZE = args.trainsize
 VALSIZE = int(TRAINSIZE/4)
 BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
-EPOCH = int(2**15/TRAINSIZE)
+EPOCH = int(2**15/TRAINSIZE)*args.epoch
 
 if torch.cuda.is_available():
     device = torch.device(f'cuda:{args.gpu}')
@@ -107,7 +107,7 @@ def main():
     def train(epoch):
         best_acc = 0.
         train_loss_ep = 0
-        print(f'\nEpoch {epoch}')
+        print(f'\n[Epoch {epoch}]')
         model.train()
         print("Training...")
         for _, (data, targets) in enumerate(trainloader):
@@ -145,7 +145,7 @@ def main():
             val_loss = val_loss_ep/len(valloader)
 
             print(
-                f"Epoch {epoch}:: Train Loss {train_loss:.4f}, Validation Loss {val_loss:.4f}, Accuracy {acc:.2f} ({num_correct} / {num_samples})"
+                f"[Epoch {epoch}] Train Loss {train_loss:.4f}, Validation Loss {val_loss:.4f}, Accuracy {acc:.2f} ({num_correct} / {num_samples})"
             )
                 
             epoch_values.append(epoch)
