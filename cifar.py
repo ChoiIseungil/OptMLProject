@@ -96,11 +96,6 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr= learning_rate)
 
-    if torch.cuda.is_available():
-        device = torch.device('cuda')
-    else:
-        raise NotImplementedError
-
     epoch_values = []
     trainloss_values = []
     valloss_values = []
