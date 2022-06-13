@@ -17,11 +17,11 @@ import time
 
 parser = argparse.ArgumentParser(description='CS439 Experiment, by Seungil Lee')
 
-parser.add_argument('-epoch', '-e', default = 100, type = int,
+parser.add_argument('-epoch', '-e', default = 200, type = int,
                     help='number of epochs to be trained')
-parser.add_argument('-trainsize', '-t', default = 2**15, type = int,
+parser.add_argument('-trainsize', '-t', default = 15, type = int,
                     help='size of trainset')
-parser.add_argument('-batchratio', '-b', default = 2**11, type = int,
+parser.add_argument('-batchratio', '-b', default = 11, type = int,
                     help='ratio of trainsize to batchsize')
 parser.add_argument('-data', '-d', required = True,
                     help='Choose between cifar and mnist')
@@ -32,8 +32,8 @@ parser.add_argument('-gpu', '-g', required = True, default = 2, type = int,
 args = parser.parse_args()
 
 MODEL = args.model
-BATCHRATIO = args.batchratio
-TRAINSIZE = args.trainsize
+BATCHRATIO = 2**args.batchratio
+TRAINSIZE = 2**args.trainsize
 VALSIZE = int(TRAINSIZE/4)
 BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
 EPOCH = int(2**15/TRAINSIZE)*args.epoch
