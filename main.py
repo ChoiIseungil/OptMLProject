@@ -1,6 +1,6 @@
 from logging import raiseExceptions
 import torch
-from models import AlexNet, ResNet18
+from models import AlexNet, ResNet18, VGG
 from torchvision.datasets import CIFAR10, MNIST
 
 from torch.utils.data.dataloader import DataLoader
@@ -50,6 +50,8 @@ def init_model(modelname = None):
         model = AlexNet()
     elif MODEL == 'ResNet':
         model = ResNet18()
+    elif model == 'VGG':
+        model = VGG('VGG19')
     if modelname is not None:
         model.load_state_dict(torch.load(modelname))
     model = model.to(device=DEVICE)
@@ -111,7 +113,6 @@ def main():
 
     model = init_model()
     ## Loss and optimizer
-    #다름
     learning_rate = args.lr
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr= learning_rate)
@@ -127,11 +128,11 @@ def main():
         best_acc = 0.
         best_val_loss = 10
         epochs_no_improve = 0
-        patience = 3
+        patience = 5
 
         for epoch in range(EPOCH):
             train_loss_ep = 0
-            print(f'\n[Epoch {epoch}]')
+            print(f'\n\n\n[Epoch {epoch}]')
             model.train()
             print("Training...")
             for _, (data, targets) in enumerate(trainloader):
