@@ -36,7 +36,7 @@ VALSIZE = int(TRAINSIZE/3)
 BATCHSIZE = int(TRAINSIZE/BATCHRATIO)
 
 if torch.cuda.is_available():
-    device = torch.device(f'cuda{args.gpu}')
+    device = torch.device(f'cuda:{args.gpu}')
 else:
     raise NotImplementedError
 
