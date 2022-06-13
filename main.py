@@ -29,7 +29,7 @@ parser.add_argument('-model', '-m', required = True,
                     help='Choose between ResNet and AlexNet')
 parser.add_argument('-gpu', '-g', required = True, default = 2, type = int,
                     help='Choose between ResNet and AlexNet')
-parser.add_argument('-lr', '-l', default = 1e-2, type = float,
+parser.add_argument('-lr', '-l', default = 1e-1, type = float,
                     help='Learning Rate')
 args = parser.parse_args()
 
@@ -72,11 +72,13 @@ def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
             write.writerow([epoch[i], trainloss[i], valloss[i], acc[i]])
 
 def load_dataset():
-    # 다름
-    transform = transforms.Compose([transforms.Resize((227,227)), 
-                                    transforms.ToTensor(), 
-                                    transforms.Normalize(mean=[0.485, 0.456, 0.406], 
-                                    std=[0.229, 0.224, 0.225])])
+    transform = transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean = (0.4914, 0.4822, 0.4465), 
+            std = (0.2023, 0.1994, 0.2010))
+    ])
     if args.data =="cifar":
         trainset = CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
@@ -122,11 +124,12 @@ def main():
     running_time_value = []
 
     def train(epoch):
+        best_acc = 0.
+        best_val_loss = 10
+        epochs_no_improve = 0
+        patience = 3
+
         for epoch in range(EPOCH):
-            best_acc = 0.
-            best_val_loss = 10
-            epochs_no_improve = 0
-            patience = 2
             train_loss_ep = 0
             print(f'\n[Epoch {epoch}]')
             model.train()
@@ -166,7 +169,7 @@ def main():
                 val_loss = val_loss_ep/len(valloader)
 
                 print(
-                    f"[Epoch {epoch}] Train Loss {train_loss:.4f}, Validation Loss {val_loss:.4f}, Accuracy {acc:.2f} ({num_correct} / {num_samples})"
+                    f"\n[Epoch {epoch}] Train Loss {train_loss:.4f}, Validation Loss {val_loss:.4f}, Accuracy {acc:.2f} ({num_correct} / {num_samples})"
                 )
                     
                 epoch_values.append(epoch)
@@ -176,6 +179,7 @@ def main():
 
             #Early Stopping
             if val_loss > best_val_loss:
+                print(f"No improvement since last {epochs_no_improve} epochs...")
                 epochs_no_improve += 1
                 if epochs_no_improve > patience:
                     print(f"Early stopped at epoch {epoch}")
@@ -184,6 +188,7 @@ def main():
                 epochs_no_improve = 0
                 best_val_loss = val_loss
 
+            #Save model if best accuracy is achieved
             if acc > best_acc:
                 print(f"New top accuracy achieved {acc:.2f}! Saving the model...")
                 save_model(model)
