@@ -29,6 +29,8 @@ parser.add_argument('-model', '-m', required = True,
                     help='Choose between ResNet and AlexNet')
 parser.add_argument('-gpu', '-g', required = True, default = 2, type = int,
                     help='Choose between ResNet and AlexNet')
+parser.add_argument('-lr', '-l', default = 1e-2, type = float,
+                    help='Learning Rate')
 args = parser.parse_args()
 
 MODEL = args.model
@@ -108,7 +110,7 @@ def main():
     model = init_model()
     ## Loss and optimizer
     #다름
-    learning_rate = 0.1
+    learning_rate = args.lr
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr= learning_rate)
 
