@@ -105,11 +105,10 @@ def load_dataset():
         testset = CIFAR10(root='./data', train=False,
                                         download=True, transform=transform_test)
     if DATA == "mnist":
-        if MODEL == "ResNet":
-            transform =  transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize((0.1307,), (0.3081,))
-                ])
+        transform =  transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+            ])
         trainset = MNIST(root='./data', train=True,
                                             download=True, transform=transform)
                                             
