@@ -1,7 +1,6 @@
-import torch
 import torch.nn as nn
 
-class FCN(nn.Module):
+class FCN():
     def __init__(self, input_size, num_classes):
         self.layer1 = nn.Linear(input_size*input_size, 512),
         self.relu1 = nn.ReLU(),
