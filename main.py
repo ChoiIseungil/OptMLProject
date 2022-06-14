@@ -114,7 +114,6 @@ def load_dataset():
         testset = MNIST(root='./data', train=False,
                                         download=True, transform=transform)  
     trainset, valset, _ = random_split(trainset, [TRAINSIZE, VALSIZE, len(trainset)-TRAINSIZE-VALSIZE])
-    print(trainset.shape(), valset.shape(), testset.shape())
 
     return trainset, valset, testset            
 
@@ -157,6 +156,8 @@ def main():
             model.train()
             print("Training...")
             for _, (data, targets) in enumerate(trainloader):
+                if DATA == "mnist" and MODEL == "FCN":
+                    data = data.view(data.shape[0], -1)
                 data = data.to(device=DEVICE)
                 targets = targets.to(device=DEVICE)
                 optimizer.zero_grad()
@@ -176,6 +177,8 @@ def main():
                 num_samples = 0
                 val_loss_ep = 0
                 for _, (data,targets) in enumerate(valloader):
+                    if DATA == "mnist" and MODEL == "FCN":
+                        data = data.view(data.shape[0], -1)
                     data = data.to(device=DEVICE)
                     targets = targets.to(device=DEVICE)
                     scores = model(data)
@@ -226,6 +229,8 @@ def main():
             num_correct = 0
             num_samples = 0
             for _, (data,targets) in enumerate(testloader):
+                if DATA == "mnist" and MODEL == "FCN":
+                    data = data.view(data.shape[0], -1)
                 data = data.to(device=DEVICE)
                 targets = targets.to(device=DEVICE)
                 scores = model(data)
