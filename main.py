@@ -50,7 +50,7 @@ def init_model(modelname = None):
         model = AlexNet()
     elif MODEL == 'ResNet':
         model = ResNet18()
-    elif model == 'VGG':
+    elif MODEL == 'VGG':
         model = VGG('VGG19')
     if modelname is not None:
         model.load_state_dict(torch.load(modelname))
