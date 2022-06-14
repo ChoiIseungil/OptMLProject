@@ -50,7 +50,6 @@ def init_model(modelname = None):
     if MODEL == 'AlexNet':
         model = AlexNet()
     elif MODEL == 'ResNet':
-        model = ResNet18()
         if DATA == 'cifar':
             model = ResNet18(in_channels = 3)
         elif DATA == 'mnist':
@@ -83,7 +82,7 @@ def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
 
 def load_dataset():
 
-    if args.data =="cifar":
+    if DATA =="cifar":
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -100,7 +99,7 @@ def load_dataset():
                                             
         testset = CIFAR10(root='./data', train=False,
                                         download=True, transform=transform_test)
-    if args.data =="mnist":
+    if DATA =="mnist":
         transform =  transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
