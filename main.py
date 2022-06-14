@@ -1,6 +1,6 @@
 from logging import raiseExceptions
 import torch
-from models import AlexNet, ResNet18, VGG
+from models import AlexNet, ResNet18, VGG, FCN
 from torchvision.datasets import CIFAR10, MNIST
 
 from torch.utils.data.dataloader import DataLoader
@@ -26,7 +26,7 @@ parser.add_argument('-batchratio', '-b', default = 11, type = int,
 parser.add_argument('-data', '-d', required = True,
                     help='Choose between cifar and mnist')
 parser.add_argument('-model', '-m', required = True,
-                    help='Choose between ResNet and AlexNet')
+                    help='Choose among ResNet, AlexNet, VGG and FCN')
 parser.add_argument('-gpu', '-g', required = True, default = 2, type = int,
                     help='Choose between ResNet and AlexNet')
 parser.add_argument('-lr', '-l', default = 1e-1, type = float,
@@ -59,6 +59,11 @@ def init_model(modelname = None):
             model = VGG('VGG19', in_channels = 3)
         elif DATA == 'mnist':
             model = VGG('VGG19', in_channels = 1)
+    elif MODEL == 'FCN':
+        if DATA == 'cifar':
+            model = FCN(input_size = 32, num_classes = 10)
+        elif DATA == 'mnist':
+            model = FCN(input_size = 28, num_classes = 10)
     if modelname is not None:
         model.load_state_dict(torch.load(modelname))
     model = model.to(device=DEVICE)
@@ -105,12 +110,6 @@ def load_dataset():
                 transforms.ToTensor(),
                 transforms.Normalize((0.1307,), (0.3081,))
                 ])
-        elif MODEL == "VGG":
-            transform =  transforms.Compose([
-                transforms.Resize((256,256)),
-                transforms.ToTensor(),
-                transforms.Normalize((0.1307,), (0.3081,))
-            ])
         trainset = MNIST(root='./data', train=True,
                                             download=True, transform=transform)
                                             
