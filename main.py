@@ -72,13 +72,13 @@ def init_model(modelname = None):
 def save_model(model):
     if not os.path.isdir('saved'):
         os.mkdir('saved')
-    torch.save(model.state_dict(), f"saved/{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.pt")
-    print(f"{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.pt saved!")
+    torch.save(model.state_dict(), f"saved/{MODEL}_{DATA}_{BATCHSIZE}_{TRAINSIZE}.pt")
+    print(f"{MODEL}_{DATA}_{BATCHSIZE}_{TRAINSIZE}.pt saved!")
 
 def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
     if not os.path.isdir('log'):
         os.mkdir('log')
-    with open(f"./log/{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.csv", 'w') as f:
+    with open(f"./log/{MODEL}_{DATA}_{BATCHSIZE}_{TRAINSIZE}.csv", 'w') as f:
         write = csv.writer(f)
         write.writerow(["Epoch","Train Loss","Validation Loss","Validation Accuracy","Test Accuracy","Running Time"])
         write.writerow([epoch[0],trainloss[0],valloss[0],acc[0],test[0],runningtime[0]])
@@ -86,7 +86,6 @@ def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
             write.writerow([epoch[i], trainloss[i], valloss[i], acc[i]])
 
 def load_dataset():
-
     if DATA == "cifar":
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
@@ -115,6 +114,7 @@ def load_dataset():
         testset = MNIST(root='./data', train=False,
                                         download=True, transform=transform)  
     trainset, valset, _ = random_split(trainset, [TRAINSIZE, VALSIZE, len(trainset)-TRAINSIZE-VALSIZE])
+    print(trainset.shape(), valset.shape(), testset.shape())
 
     return trainset, valset, testset            
 
@@ -217,7 +217,7 @@ def main():
                 best_acc = acc
 
     def test():
-        model = init_model(f"saved/{MODEL}_cifar_{BATCHSIZE}_{TRAINSIZE}.pt")
+        model = init_model(f"saved/{MODEL}_{DATA}_{BATCHSIZE}_{TRAINSIZE}.pt")
         model.eval()
         
         print("Testing...")
