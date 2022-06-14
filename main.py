@@ -54,12 +54,12 @@ def init_model(modelname = None):
         if DATA == 'cifar':
             model = ResNet18(in_channels = 3)
         elif DATA == 'mnist':
-            model = ResNet18(in_chnnel = 1)
+            model = ResNet18(in_channels = 1)
     elif MODEL == 'VGG':
         if DATA == 'cifar':
-            model = VGG('VGG19', in_channel = 3)
+            model = VGG('VGG19', in_channels = 3)
         elif DATA == 'mnist':
-            model = VGG('VGG19', in_channel = 1)
+            model = VGG('VGG19', in_channels = 1)
     if modelname is not None:
         model.load_state_dict(torch.load(modelname))
     model = model.to(device=DEVICE)
