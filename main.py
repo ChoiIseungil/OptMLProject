@@ -33,6 +33,7 @@ parser.add_argument('-lr', '-l', default = 1e-1, type = float,
                     help='Learning Rate')
 args = parser.parse_args()
 
+DATA = args.data
 MODEL = args.model
 BATCHRATIO = 2**args.batchratio
 TRAINSIZE = 2**args.trainsize
@@ -50,8 +51,15 @@ def init_model(modelname = None):
         model = AlexNet()
     elif MODEL == 'ResNet':
         model = ResNet18()
+        if DATA == 'cifar':
+            model = ResNet18(in_channels = 3)
+        elif DATA == 'mnist':
+            model = ResNet18(in_chnnel = 1)
     elif MODEL == 'VGG':
-        model = VGG('VGG19')
+        if DATA == 'cifar':
+            model = VGG('VGG19', in_channel = 3)
+        elif DATA == 'mnist':
+            model = VGG('VGG19', in_channel = 1)
     if modelname is not None:
         model.load_state_dict(torch.load(modelname))
     model = model.to(device=DEVICE)
@@ -74,20 +82,29 @@ def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
             write.writerow([epoch[i], trainloss[i], valloss[i], acc[i]])
 
 def load_dataset():
-    transform = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean = (0.4914, 0.4822, 0.4465), 
-            std = (0.2023, 0.1994, 0.2010))
-    ])
+
     if args.data =="cifar":
+        transform_train = transforms.Compose([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean = (0.4914, 0.4822, 0.4465), 
+                std = (0.2023, 0.1994, 0.2010))
+            ])
+        transform_test = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            ])
         trainset = CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
+                                            download=True, transform=transform_train)
                                             
         testset = CIFAR10(root='./data', train=False,
-                                        download=True, transform=transform)
+                                        download=True, transform=transform_test)
     if args.data =="mnist":
+        transform =  transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))
+            ])
         trainset = MNIST(root='./data', train=True,
                                             download=True, transform=transform)
                                             
