@@ -82,7 +82,7 @@ def save_csv(epoch, trainloss, valloss, acc, test, runningtime):
 
 def load_dataset():
 
-    if DATA =="cifar":
+    if DATA == "cifar":
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -99,10 +99,17 @@ def load_dataset():
                                             
         testset = CIFAR10(root='./data', train=False,
                                         download=True, transform=transform_test)
-    if DATA =="mnist":
-        transform =  transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
+    if DATA == "mnist":
+        if MODEL == "ResNet":
+            transform =  transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
+                ])
+        elif MODEL == "VGG":
+            transform =  transforms.Compose([
+                transforms.Resize((256,256)),
+                transforms.ToTensor(),
+                transforms.Normalize((0.1307,), (0.3081,))
             ])
         trainset = MNIST(root='./data', train=True,
                                             download=True, transform=transform)
