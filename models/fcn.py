@@ -21,7 +21,7 @@ import torch.nn as nn
 
 def FCN(input_size,num_classes):
     model = nn.Sequential(
-        nn.Linear(input_size*input, 512),
+        nn.Linear(input_size*input_size, 512),
         nn.ReLU(),
         nn.Dropout(p=0.2),
         nn.Linear(512, 256),
